@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D T-shirt模型展示</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        #color-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 200px;
+        }
+        
+        #texture-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 280px;
+            max-width: 320px;
+        }
+        
+        .upload-area {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        
+        .upload-area:hover {
+            background-color: rgba(0, 123, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .texture-controls {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 5px;
+        }
+        
+        .control-group {
+            margin-bottom: 10px;
+        }
+        
+        .control-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .control-row input {
+            flex: 1;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .control-row button {
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .control-row button:hover {
+            background: #218838;
+        }
+        
+        .texture-list {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .texture-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .texture-item:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+        
+        .texture-item.active {
+            background: rgba(0, 123, 255, 0.2);
+            border: 1px solid #007bff;
+        }
+        
+        .texture-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            margin-right: 10px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+        
+        .texture-info {
+            flex: 1;
+            font-size: 12px;
+        }
+        
+        .texture-name {
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .texture-size {
+            color: #666;
+            font-size: 10px;
+        }
+        
+        .remove-texture {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #333;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .info-panel p {
+            margin: 5px 0;
+        }
+        
+        button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <div id="color-container"></div>
+        <div id="texture-container">
+            <h3 style="margin: 0 0 15px 0; font-size: 14px;">贴图管理</h3>
+            <div class="upload-area" id="upload-area">
+                <div>📁 点击选择贴图文件</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">支持 PNG、JPG、GIF 等格式</div>
+                <input type="file" id="file-input" class="file-input" accept="image/*">
+            </div>
+            
+            <div class="texture-controls" id="texture-controls" style="display: none;">
+                <h4 style="margin: 0 0 10px 0; font-size: 13px;">贴图控制</h4>
+                
+                <div class="control-group">
+                    <label>缩放 (X, Y)</label>
+                    <div class="control-row">
+                        <input type="number" id="scale-x" value="1" step="0.1" min="0.1" max="10">
+                        <input type="number" id="scale-y" value="1" step="0.1" min="0.1" max="10">
+                        <button id="apply-scale">应用</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>偏移 (X, Y)</label>
+                    <div class="control-row">
+                        <input type="number" id="offset-x" value="0" step="0.1" min="-1" max="1">
+                        <input type="number" id="offset-y" value="0" step="0.1" min="-1" max="1">
+                        <button id="apply-offset">应用</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>旋转 (弧度)</label>
+                    <div class="control-row">
+                        <input type="number" id="rotation" value="0" step="0.1" min="0" max="6.28">
+                        <button id="apply-rotation">应用</button>
+                        <button id="reset-transform" style="background: #6c757d;">重置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="texture-list" id="texture-list">
+                <!-- 贴图列表将在这里动态生成 -->
+            </div>
+            <button id="clear-textures" style="width: 100%; margin-top: 10px; background: #dc3545;">清除所有贴图</button>
+        </div>
+        <div class="info-panel">
+            <h3>操作说明</h3>
+            <p>🖱️ 鼠标左键：旋转视角</p>
+            <p>🖱️ 鼠标右键：平移视角</p>
+            <p>🖱️ 鼠标滚轮：缩放</p>
+            <p>🎨 点击颜色球：更换车身颜色</p>
+            <p>🖼️ 点击上传区域：选择贴图文件</p>
+            <p>⚙️ 贴图控制：调整贴图大小、位置、旋转</p>
+            <button id="front-view">正面视角</button>
+        </div>
+        <canvas id="canvas"></canvas>
+    </div>
+    <script type="module" src="./main.ts"></script>
+</body>
+</html>
